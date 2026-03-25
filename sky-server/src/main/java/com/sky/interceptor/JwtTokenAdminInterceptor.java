@@ -25,9 +25,9 @@ public class JwtTokenAdminInterceptor implements HandlerInterceptor {
     /**
      * 校验jwt
      *
-     * @param request
-     * @param response
-     * @param handler
+     * @param request 请求对象
+     * @param response 响应对象
+     * @param handler 当前拦截到的目标对象
      * @return
      * @throws Exception
      */
