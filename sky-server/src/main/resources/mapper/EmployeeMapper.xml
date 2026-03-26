@@ -11,4 +11,40 @@
         </where>
         order by create_time desc
     </select>
+
+    <update id="update" parameterType="Employee">
+        update employee
+        <set>
+            <!-- 如果 name 不为空，就更新 name -->
+            <if test="name != null">name = #{name},</if>
+
+            <!-- 如果 username 不为空，就更新 username -->
+            <if test="username != null">username = #{username},</if>
+
+            <!-- 如果 password 不为空，就更新 password -->
+            <if test="password != null">password = #{password},</if>
+
+            <!-- 如果 phone 不为空，就更新 phone -->
+            <if test="phone != null">phone = #{phone},</if>
+
+            <!-- 如果 sex 不为空，就更新 sex -->
+            <if test="sex != null">sex = #{sex},</if>
+
+            <!-- 如果 idNumber 不为空，就更新身份证号 -->
+            <if test="idNumber != null">id_Number = #{idNumber},</if>
+
+            <!-- 如果 updateTime 不为空，就更新时间 -->
+            <if test="updateTime != null">update_Time = #{updateTime},</if>
+
+            <!-- 如果 updateUser 不为空，就更新修改人 -->
+            <if test="updateUser != null">update_User = #{updateUser},</if>
+
+            <!-- 如果 status 不为空，就更新状态 -->
+            <if test="status != null">status = #{status},</if>
+        </set>
+
+        <!-- 根据主键 id 更新对应员工 -->
+        where id = #{id}
+    </update>
+
 </mapper>
