@@ -4,65 +4,62 @@ import com.aliyun.oss.ClientException;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.OSSException;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+
 import java.io.ByteArrayInputStream;
 
 @Data
-@AllArgsConstructor
 @Slf4j
 public class AliOssUtil {
 
     private String endpoint;
-    private String accessKeyId;
-    private String accessKeySecret;
     private String bucketName;
+
+    public AliOssUtil(String endpoint, String bucketName) {
+        this.endpoint = endpoint;
+        this.bucketName = bucketName;
+    }
 
     /**
      * 文件上传
      *
-     * @param bytes
-     * @param objectName
-     * @return
+     * @param bytes 文件字节数组
+     * @param objectName 文件对象名
+     * @return 文件访问路径
      */
     public String upload(byte[] bytes, String objectName) {
 
-        // 创建OSSClient实例。
+        // 从系统环境变量中获取密钥
+        String accessKeyId = System.getenv("ALIBABA_CLOUD_ACCESS_KEY_ID");
+        String accessKeySecret = System.getenv("ALIBABA_CLOUD_ACCESS_KEY_SECRET");
+
+        if (accessKeyId == null || accessKeySecret == null) {
+            throw new RuntimeException("阿里云 OSS 环境变量未配置：ALIBABA_CLOUD_ACCESS_KEY_ID / ALIBABA_CLOUD_ACCESS_KEY_SECRET");
+        }
+
+        // 创建 OSSClient 实例
         OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
 
         try {
-            // 创建PutObject请求。
+            // 上传文件
             ossClient.putObject(bucketName, objectName, new ByteArrayInputStream(bytes));
         } catch (OSSException oe) {
-            System.out.println("Caught an OSSException, which means your request made it to OSS, "
-                    + "but was rejected with an error response for some reason.");
-            System.out.println("Error Message:" + oe.getErrorMessage());
-            System.out.println("Error Code:" + oe.getErrorCode());
-            System.out.println("Request ID:" + oe.getRequestId());
-            System.out.println("Host ID:" + oe.getHostId());
+            log.error("OSS服务异常: {}", oe.getErrorMessage(), oe);
+            throw new RuntimeException("文件上传失败：OSS服务异常");
         } catch (ClientException ce) {
-            System.out.println("Caught an ClientException, which means the client encountered "
-                    + "a serious internal problem while trying to communicate with OSS, "
-                    + "such as not being able to access the network.");
-            System.out.println("Error Message:" + ce.getMessage());
+            log.error("OSS客户端异常: {}", ce.getMessage(), ce);
+            throw new RuntimeException("文件上传失败：客户端异常");
         } finally {
             if (ossClient != null) {
                 ossClient.shutdown();
             }
         }
 
-        //文件访问路径规则 https://BucketName.Endpoint/ObjectName
-        StringBuilder stringBuilder = new StringBuilder("https://");
-        stringBuilder
-                .append(bucketName)
-                .append(".")
-                .append(endpoint)
-                .append("/")
-                .append(objectName);
+        // 文件访问路径规则：https://BucketName.Endpoint/ObjectName
+        String url = "https://" + bucketName + "." + endpoint + "/" + objectName;
+        log.info("文件上传到: {}", url);
 
-        log.info("文件上传到:{}", stringBuilder.toString());
-
-        return stringBuilder.toString();
+        return url;
     }
 }
