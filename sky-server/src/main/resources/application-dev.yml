@@ -10,3 +10,8 @@ sky:
   alioss:
     endpoint: oss-cn-wuhan-lr.aliyuncs.com
     bucket-name: yi-take-out
+
+  redis:
+    host: localhost
+    port: 6379
+    database: 10
